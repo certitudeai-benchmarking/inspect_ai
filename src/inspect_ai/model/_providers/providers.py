@@ -272,6 +272,12 @@ def goodfire() -> type[ModelAPI]:
     return GoodfireAPI
 
 
+@modelapi(name="custom")
+def custom() -> type[ModelAPI]:
+    from .custom import CustomModelAPI
+    return CustomModelAPI
+
+
 def validate_openai_client(feature: str) -> None:
     FEATURE = feature
     PACKAGE = "openai"
