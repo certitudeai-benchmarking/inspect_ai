@@ -5,7 +5,7 @@ from inspect_ai.tool import ToolChoice, ToolInfo
 from .._chat_message import ChatMessage
 from .._generate_config import GenerateConfig
 from .._model import ModelAPI
-from .._model_output import ModelOutput
+from .._model_output import ModelOutput, StopReason
 
 
 class CustomModelAPI(ModelAPI):
@@ -40,6 +40,15 @@ class CustomModelAPI(ModelAPI):
             "max_tokens": 800
         }
         response = requests.post(url, headers=headers, data=json.dumps(payload))
-        output_json = response.json()
-        content = output_json['choices'][0]['message']['content']
-        return ModelOutput.from_content(self.model_name, content=content)
+        stop_reason: StopReason | None = None
+        try:
+            output_json = response.json()
+            content = output_json['choices'][0]['message']['content']
+            stop_reason = "stop"
+        except KeyError as e:
+            stop_reason = "content_filter"
+            content = str(e)
+        except Exception as e:
+            stop_reason = "unknown"
+            content = str(e)
+        return ModelOutput.from_content(self.model_name, content=content, stop_reason=stop_reason)
